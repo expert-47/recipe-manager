@@ -13,14 +13,18 @@ import { Theme, useTheme } from "@mui/material/styles";
 import { styled } from "@mui/material/styles";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import dayjs from "dayjs";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import DropzoneUploader from "react-dropzone-uploader";
 import "react-dropzone-uploader/dist/styles.css";
+
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+
+const today = dayjs();
+
+const todayStartOfTheDay = today.startOf("day");
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -130,70 +134,18 @@ const AddRecipeComponent = () => {
               <Typography variant="subtitle2" mt={1} mb={1}>
                 Prep Time
               </Typography>
+
               <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DemoContainer components={["TimePicker"]}>
-                  <TimePicker
-                    // label="Time"
-                    //   classes={{
-                    //     root: classes.timePickerRoot,
-                    //   }}
-                    //   style={{ width: "100%" }}
-                    //   value={dayjs(dateValue)}
-                    // disablePast
-                    // use12Hours
-                    ampm={false}
-                    //   disabled={isEditable}
-                    // minTime={new Date(item?.openTimesValueMerged)}
-                    // minTime={new Date(0, 0, 0, 12)}
-                    onChange={(e) => {
-                      // handleChangeDateValue(e, parent, subParent, displayName);
-                      // setDateValue(e);
-                      /*  if (e == null) {
-                    setCloseTimesError(true);
-                  } else {
-                    setCloseTimesError(false);
-                  } */
-                    }}
-                    renderInput={(params) => (
-                      <TextField {...params} style={{ width: "100%" }} />
-                    )}
-                  />
-                </DemoContainer>
+                <TimePicker ampm={false} defaultValue={todayStartOfTheDay} />
               </LocalizationProvider>
             </Box>
             <Box>
               <Typography variant="subtitle2" mt={1} mb={1}>
                 Cooking Time
               </Typography>
+
               <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DemoContainer components={["TimePicker"]}>
-                  <TimePicker
-                    // label="Time"
-                    //   classes={{
-                    //     root: classes.timePickerRoot,
-                    //   }}
-                    //   style={{ width: "100%" }}
-                    //   value={dayjs(dateValue)}
-                    // disablePast
-                    // use12Hours
-                    ampm={false}
-                    //   disabled={isEditable}
-                    // minTime={new Date(item?.openTimesValueMerged)}
-                    // minTime={new Date(0, 0, 0, 12)}
-                    onChange={(e) => {
-                      // handleChangeDateValue(e, parent, subParent, displayName);
-                      // setDateValue(e);
-                      /*  if (e == null) {
-                    setCloseTimesError(true);
-                  } else {
-                    setCloseTimesError(false);
-                  } */
-                    }}
-                    renderInput={(params) => (
-                      <TextField {...params} style={{ width: "100%" }} />
-                    )}
-                  />
-                </DemoContainer>
+                <TimePicker ampm={false} defaultValue={todayStartOfTheDay} />
               </LocalizationProvider>
             </Box>
           </Box>
@@ -202,7 +154,6 @@ const AddRecipeComponent = () => {
           </Typography>
           <Select
             labelId="demo-multiple-name-label"
-            //   id="demo-multiple-name"
             multiple
             value={personName}
             onChange={handleChange}
@@ -221,7 +172,6 @@ const AddRecipeComponent = () => {
           </Typography>
           <Select
             labelId="demo-multiple-name-label"
-            //   id="demo-multiple-name"
             multiple
             value={personName}
             onChange={handleChange}
@@ -254,9 +204,6 @@ const AddRecipeComponent = () => {
                 }}
               >
                 <Box>
-                  {/* <Typography variant="subtitle2" mt={1} mb={1}>
-                      Name
-                    </Typography> */}
                   <TextField
                     id={`title-${index}`}
                     label="Name"
@@ -273,9 +220,6 @@ const AddRecipeComponent = () => {
                   />
                 </Box>
                 <Box>
-                  {/* <Typography variant="subtitle2" mt={1} mb={1}>
-                      Quantity
-                    </Typography> */}
                   <TextField
                     id={`quantity-${index}`}
                     label="Quantity"

@@ -45,7 +45,7 @@ const Profile = () => {
           }}
         />
       </Box>
-      <Box sx={{ width: "100%" }}>
+      <Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
         <Tabs
           value={value}
           onChange={handleChange}
