@@ -29,7 +29,7 @@
     "**/*.ts",
     "**/*.tsx",
     "src/components/header"
-  ],
+, "src/store/index.js"  ],
   "exclude": [
     "node_modules"
   ]
