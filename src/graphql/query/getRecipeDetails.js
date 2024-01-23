@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
-export const CREATE_RECIPE = gql`
-  mutation CreateRecipe($data: RecipeInput!) {
-    createRecipe(data: $data) {
+export const GET_RECIPE_DETAILS = gql`
+  query Recipe($recipeId: ID) {
+    recipe(id: $recipeId) {
       data {
         id
         attributes {
@@ -24,13 +24,29 @@ export const CREATE_RECIPE = gql`
               }
             }
           }
+          comments {
+            data {
+              id
+              attributes {
+                message
+                user {
+                  data {
+                    id
+                    attributes {
+                      Name
+                    }
+                  }
+                }
+              }
+            }
+          }
           cooking_time
           ingredients {
             data {
               id
               attributes {
-                title
                 count
+                title
               }
             }
           }
@@ -44,27 +60,6 @@ export const CREATE_RECIPE = gql`
               }
             }
           }
-          user {
-            data {
-              id
-              attributes {
-                Name
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-export const UPDATE_RECIPE = gql`
-  mutation Mutation($updateRecipeId: ID!, $data: RecipeInput!) {
-    updateRecipe(id: $updateRecipeId, data: $data) {
-      data {
-        id
-        attributes {
-          Title
-          Description
         }
       }
     }

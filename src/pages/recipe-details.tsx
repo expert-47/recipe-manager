@@ -1,7 +1,10 @@
 import ResponsiveAppBar from "@/components/header";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ImageSlider from "../components/image-slider/index";
-import { Grid, Card, CardContent, Typography, Chip } from "@mui/material";
+import { Grid, Card, CardContent, Typography, Chip, Box } from "@mui/material";
+import { GET_RECIPE_DETAILS } from "@/graphql/query/getRecipeDetails";
+import { getCookie } from "cookies-next";
+import client from "@/graphql/apollo-client";
 
 // Dummy data for demonstration
 const data = {
@@ -21,16 +24,54 @@ const data = {
 };
 
 const RecipeDetails = () => {
+  const [recipeData, setrecipeData] = useState();
+  const recipe_id = getCookie("recipe-id");
+  const getRecipeDetails = async () => {
+    const queries = [
+      client.query({
+        query: GET_RECIPE_DETAILS,
+        variables: {
+          recipeId: recipe_id,
+        },
+      }),
+    ];
+    const response = await Promise.all(queries);
+    console.log("response", response[0]?.data?.recipe?.data?.attributes);
+    setrecipeData(response[0]?.data?.recipe?.data?.attributes);
+  };
+  useEffect(() => {
+    getRecipeDetails();
+  }, []);
+
+  const categoriesTitlesArray = recipeData?.categories?.data?.map((item) => {
+    return item?.attributes?.Title;
+  });
+  console.log("recipeData", recipeData);
+
   return (
     <div>
       <ResponsiveAppBar />
-      <ImageSlider />
+      {recipeData?.Images?.data?.length > 0 ? (
+        <ImageSlider imagesUrl={recipeData?.Images?.data} />
+      ) : (
+        <Box
+          mt={10}
+          mb={10}
+          sx={{
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="h4" gutterBottom mb={0}>
+            {"This Recipe do not have images "}
+          </Typography>
+        </Box>
+      )}
       <Grid container spacing={3} p={3}>
         <Grid item xs={12}>
           <Card>
             <CardContent style={{ paddingBottom: "16px", textAlign: "center" }}>
               <Typography variant="h4" gutterBottom mb={0}>
-                {data.title}
+                <strong>Title:</strong> {recipeData?.Title}
               </Typography>
             </CardContent>
           </Card>
@@ -39,7 +80,7 @@ const RecipeDetails = () => {
           <Card>
             <CardContent style={{ paddingBottom: "16px" }}>
               <Typography color="body1" gutterBottom mb={0}>
-                <strong>Categories:</strong> {data.categories.join(", ")}
+                <strong>Categories:</strong> {categoriesTitlesArray?.join(", ")}
               </Typography>
             </CardContent>
           </Card>
@@ -48,7 +89,7 @@ const RecipeDetails = () => {
           <Card>
             <CardContent style={{ paddingBottom: "16px" }}>
               <Typography variant="body1" paragraph mb={0}>
-                <strong>Description:</strong> {data.description}
+                <strong>Description:</strong> {recipeData?.Description}
               </Typography>
             </CardContent>
           </Card>
@@ -57,7 +98,7 @@ const RecipeDetails = () => {
           <Card>
             <CardContent style={{ paddingBottom: "16px" }}>
               <Typography variant="body1" paragraph mb={0}>
-                <strong>Preparation Time:</strong> {data.preparationTime}
+                <strong>Preparation Time:</strong> {recipeData?.prep_time}
               </Typography>
             </CardContent>
           </Card>
@@ -66,7 +107,7 @@ const RecipeDetails = () => {
           <Card>
             <CardContent style={{ paddingBottom: "16px" }}>
               <Typography variant="body1" paragraph mb={0}>
-                <strong>Cooking Time:</strong> {data.cookingTime}
+                <strong>Cooking Time:</strong> {recipeData?.cooking_time}
               </Typography>
             </CardContent>
           </Card>
@@ -77,9 +118,12 @@ const RecipeDetails = () => {
               <Typography variant="body1" paragraph mb={0}>
                 <strong>Ingredients:</strong>
                 <ul>
-                  {data.ingredients.map((ingredient, index) => (
+                  {recipeData?.ingredients?.data.map((ingredient, index) => (
                     <li key={index}>
-                      {ingredient.name} - {ingredient.quantity}
+                      {ingredient?.attributes?.title}{" "}
+                      <strong style={{ marginLeft: "40px" }}>
+                        {ingredient?.attributes?.count}
+                      </strong>
                     </li>
                   ))}
                 </ul>
@@ -92,7 +136,7 @@ const RecipeDetails = () => {
             <CardContent style={{ paddingBottom: "16px" }}>
               <Typography variant="body1" paragraph mb={0}>
                 <strong>Cooking Instructions:</strong>{" "}
-                {data.cookingInstructions}
+                {recipeData?.instructions}
               </Typography>
             </CardContent>
           </Card>
@@ -102,10 +146,10 @@ const RecipeDetails = () => {
             <CardContent style={{ paddingBottom: "16px" }}>
               <Typography variant="body1" paragraph mb={0}>
                 <strong>Tags:</strong>{" "}
-                {data.tags.map((tag, index) => (
+                {recipeData?.tags?.data.map((item, index) => (
                   <Chip
                     key={index}
-                    label={tag}
+                    label={item?.attributes?.Title}
                     style={{ marginRight: "4px" }}
                   />
                 ))}
@@ -113,6 +157,35 @@ const RecipeDetails = () => {
             </CardContent>
           </Card>
         </Grid>
+        {recipeData?.comments?.data?.length > 0 && (
+          <Grid item xs={12} sm={6}>
+            <Card>
+              <CardContent style={{ paddingBottom: "16px" }}>
+                <strong>Comments:</strong>{" "}
+                {recipeData?.comments?.data?.map((item, index) => {
+                  return (
+                    <Box
+                      key={index}
+                      sx={{
+                        display: "flex",
+                        width: "100%",
+                        flexDirection: "column",
+                      }}
+                      mt={1}
+                    >
+                      <Typography variant="subtitle1">
+                        {item?.attributes?.user?.data?.attributes?.Name}:
+                      </Typography>
+                      <Typography variant="subtitle2">
+                        {item?.attributes?.message}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
       </Grid>
     </div>
   );

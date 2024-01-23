@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -27,6 +27,9 @@ import { uploadFileClient } from "@/graphql/apollo-client";
 import { UPDATE_USER_PERMISSION } from "@/graphql/mutation/updateUsersPermissionsUser";
 import { getImageUrl } from "@/utils/getImageUrl";
 import { notifyError, notifySuccess } from "@/utils/toast";
+import { GET_FAVIOURITES_RECIPES } from "@/graphql/query/getFaviouritesRecipe";
+import client from "@/graphql/apollo-client";
+import { GET_ALL_RECIPES } from "@/graphql/query/getAllRecipes";
 
 const Profile = () => {
   const user = useSelector((state) => state.authReducer.user);
@@ -40,6 +43,8 @@ const Profile = () => {
   const [uploadFileUrl, setuploadFileUrl] = useState("");
   const [open, setOpen] = useState(false);
   const [nameOfUser, setNameOfUser] = useState("");
+  const [faviouritesRecipes, setFaviouritesRecipes] = useState([]);
+  const [userRecipesState, setuserRecipesState] = useState([]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -48,9 +53,10 @@ const Profile = () => {
   const email = getCookie("email");
   const userID = getCookie("id");
   const profile_picture = getCookie("profile_picture");
-  console.log("profile_picture", getImageUrl(profile_picture));
 
-  const arrayToIterateCards = [1, 2, 3];
+  useEffect(() => {
+    getFaviouritesRecipe();
+  }, []);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -58,6 +64,41 @@ const Profile = () => {
     if (file) {
       setSelectedFile(file);
     }
+  };
+
+  // get faviourites recipe
+
+  const getFaviouritesRecipe = async () => {
+    const queries = [
+      client.query({
+        query: GET_FAVIOURITES_RECIPES,
+        variables: {
+          filters: {
+            user: {
+              id: {
+                eq: userID,
+              },
+            },
+          },
+        },
+      }),
+      client.query({
+        query: GET_ALL_RECIPES,
+        variables: {
+          filters: {
+            user: {
+              id: {
+                eq: userID,
+              },
+            },
+          },
+        },
+      }),
+    ];
+    const response = await Promise.all(queries);
+    console.log("rrrr", response[0]?.data?.favourites?.data);
+    setFaviouritesRecipes(response[0]?.data?.favourites?.data);
+    setuserRecipesState(response[1]?.data?.recipes?.data);
   };
 
   const uploadProfilePicture = async () => {
@@ -128,6 +169,8 @@ const Profile = () => {
     }
   };
 
+  console.log("faviouritesRecipes", faviouritesRecipes);
+
   return (
     <Box>
       <ResponsiveAppBar />
@@ -197,8 +240,8 @@ const Profile = () => {
         </Tabs>
       </Box>
       {value === "favourites" && (
-        <Grid container mt={5} spacing={2}>
-          {arrayToIterateCards?.map((item: number) => (
+        <Grid container mt={2} spacing={2}>
+          {faviouritesRecipes?.map((item: any) => (
             <Grid
               key={`recipe-cards ${item}`}
               item
@@ -208,16 +251,19 @@ const Profile = () => {
               justifyContent={"center"}
               display={"flex"}
             >
-              <RecipeCard />
+              <RecipeCard
+                cardData={item?.attributes?.recipe?.data}
+                profileScreenFaviourites={true}
+              />
             </Grid>
           ))}
         </Grid>
       )}
       {value === "My Recipes" && (
         <Grid container mt={5} spacing={2}>
-          {arrayToIterateCards?.map((item: number) => (
+          {userRecipesState?.map((item: any, index) => (
             <Grid
-              key={`recipe-cards ${item}`}
+              key={index}
               item
               xs={12}
               sm={6}
@@ -225,7 +271,7 @@ const Profile = () => {
               justifyContent={"center"}
               display={"flex"}
             >
-              <RecipeCard />
+              <RecipeCard cardData={item} editAndDeleteAccess={true} />
             </Grid>
           ))}
         </Grid>
