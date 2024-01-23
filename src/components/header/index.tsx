@@ -14,9 +14,9 @@ import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import { useRouter } from "next/router";
 import Link from "next/link";
-
+import LunchDiningIcon from "@mui/icons-material/LunchDining";
 const pages = ["Add Recipe"];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+const settings = ["Dashboard", "Add Recipe", "Profile", "Logout"];
 
 function ResponsiveAppBar() {
   const router = useRouter();
@@ -52,6 +52,10 @@ function ResponsiveAppBar() {
       router.push("/profile");
     } else if (pageName === "Logout") {
       router.push("/");
+    } else if (pageName === "Dashboard") {
+      router.push("/dashboard");
+    } else if (pageName === "Add Recipe") {
+      router.push("/add-recipe");
     }
   };
 
@@ -63,7 +67,8 @@ function ResponsiveAppBar() {
             style={{ display: "flex", textDecoration: "none", color: "white" }}
             href={"./dashboard"}
           >
-            <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
+            <LunchDiningIcon fontSize="large" sx={{ marginRight: "40px" }} />
+            {/* <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
             <Typography
               variant="h6"
               noWrap
@@ -80,10 +85,10 @@ function ResponsiveAppBar() {
               }}
             >
               LOGO
-            </Typography>
+            </Typography> */}
           </Link>
 
-          <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
+          {/* <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -117,8 +122,8 @@ function ResponsiveAppBar() {
                 </MenuItem>
               ))}
             </Menu>
-          </Box>
-          <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
+          </Box> */}
+          {/* <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
           <Typography
             variant="h5"
             noWrap
@@ -136,8 +141,8 @@ function ResponsiveAppBar() {
             }}
           >
             LOGO
-          </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
+          </Typography> */}
+          {/* <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {pages.map((page) => (
               <Button
                 key={page}
@@ -147,9 +152,17 @@ function ResponsiveAppBar() {
                 {page}
               </Button>
             ))}
-          </Box>
+          </Box> */}
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box
+            sx={{
+              flexGrow: 0,
+              display: "flex",
+              justifyContent: "end",
+              paddingRight: "20px",
+              width: "95%",
+            }}
+          >
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />

@@ -7,7 +7,7 @@ const EditRecipe = () => {
     <div
       style={{
         backgroundImage: "linear-gradient(to right, #ebf7ff, #edf4ff)",
-        height: "100vh",
+        height: "100%",
       }}
     >
       <ResponsiveAppBar />
