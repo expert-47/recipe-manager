@@ -8,7 +8,9 @@ import {
   OutlinedInput,
   Button,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import React, { useEffect, useState } from "react";
 import { Theme, useTheme } from "@mui/material/styles";
 import { styled } from "@mui/material/styles";
@@ -75,7 +77,7 @@ const AddRecipeComponent = (props: any) => {
   const [categoriesList, setcategoriesList] = useState([]);
   const [tagsList, setTagsList] = useState([]);
   const [formData, setFormData] = useState({});
-  console.log("uploadedFiles", uploadedFiles);
+  const [onlineFiles, setOnlineFiles] = useState([]);
 
   const [tags, setTags] = React.useState<string[]>([]);
   const router = useRouter();
@@ -111,7 +113,6 @@ const AddRecipeComponent = (props: any) => {
   };
 
   const [fields, setFields] = useState([{ i_name: "", i_count: "" }]);
-  console.log("fieldsfields", fields);
 
   const schema = yup.object().shape({
     title: yup.string().label("Title").required("Title is required"),
@@ -143,13 +144,16 @@ const AddRecipeComponent = (props: any) => {
     formState: { errors },
     getValues,
     control,
+    reset,
   } = useForm({
-    mode: "onChange",
+    mode: "all",
     resolver: yupResolver(schema),
     defaultValues: {
       ingredients: fields,
     },
   });
+  console.log("getValues", getValues());
+  console.log("recipeDetailsData", recipeDetailsData);
 
   const onSubmit = async (data: any, e: any) => {
     if (e.key === "Enter") {
@@ -193,7 +197,7 @@ const AddRecipeComponent = (props: any) => {
 
       const IngredientsIdArray = IngredientsResponse?.map((item) => item?.id);
       let multiFileUpload;
-      if (uploadedFiles && router.pathname == "/add-recipe") {
+      if (uploadedFiles) {
         multiFileUpload = await uploadFileClient.mutate({
           mutation: MULTI_UPLOADER,
           variables: {
@@ -207,6 +211,13 @@ const AddRecipeComponent = (props: any) => {
       const imagesIdArray = multiFileUpload?.data?.multipleUpload?.map(
         (item) => item?.data?.id
       );
+
+      const alreadyUploadedImagesIdarray = onlineFiles?.map((item) => item?.id);
+
+      let concatinatedImagesId = [
+        ...imagesIdArray,
+        ...alreadyUploadedImagesIdarray,
+      ];
 
       let createResipeResponse;
       let updateRecipeResponse;
@@ -237,7 +248,7 @@ const AddRecipeComponent = (props: any) => {
               Description: data?.description,
               Title: data?.title,
               cooking_time: c_timeString,
-              Images: null,
+              Images: concatinatedImagesId || [],
               categories: data?.categories,
               ingredients: IngredientsIdArray,
               instructions: data?.instructions,
@@ -250,11 +261,17 @@ const AddRecipeComponent = (props: any) => {
       }
       if (createResipeResponse) {
         notifySuccess("Recipe has ben created");
-      } else notifyError("Something Went Wrong");
+        reset();
+        router.push("/profile");
+      } else if (updateRecipeResponse) {
+        notifySuccess("Recipe has ben updated");
+        reset();
+        router.push("/profile");
+      } else notifyError("Something Went Wrong 1");
     } catch (error) {
       console.log("error", error);
 
-      notifyError("Something Went Wrong");
+      notifyError("Something Went Wrong 2");
     }
   };
 
@@ -279,9 +296,6 @@ const AddRecipeComponent = (props: any) => {
     }
     // }
   };
-
-  const [onlineFiles, setOnlineFiles] = useState<File[]>([]);
-  console.log("onlineFiles", onlineFiles);
 
   const getCategoriesList = async () => {
     const queries = [
@@ -341,20 +355,32 @@ const AddRecipeComponent = (props: any) => {
     setTags(tagIdArray);
 
     const onlineImageURLs =
-      response[0]?.data?.recipe?.data?.attributes?.Images?.data?.map((item) =>
-        getImageUrl(item?.attributes?.url)
-      );
+      response[0]?.data?.recipe?.data?.attributes?.Images?.data?.map((item) => {
+        return { image_url: getImageUrl(item?.attributes?.url), id: item.id };
+      });
 
-    const fetchPromises = onlineImageURLs.map(async (url) => {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      return new File([blob], url, { type: blob.type });
-    });
-
-    const files = await Promise.all(fetchPromises);
-    console.log("onlineImageURLs", { onlineImageURLs, files });
-
-    setUploadedFiles(files);
+    setOnlineFiles(onlineImageURLs);
+    setValue(
+      "time",
+      parseTimeString(response[0]?.data?.recipe?.data?.attributes?.prep_time)
+    );
+    setValue(
+      "cookingTime",
+      parseTimeString(response[0]?.data?.recipe?.data?.attributes?.cooking_time)
+    );
+    setValue(
+      "categories",
+      response[0]?.data?.recipe?.data?.attributes?.categories?.data?.map(
+        (item) => item?.id
+      )
+    );
+    setValue(
+      "tags",
+      response[0]?.data?.recipe?.data?.attributes?.tags?.data?.map(
+        (item) => item?.id
+      )
+    );
+    // parseTimeString(recipeDetailsData.prep_time);
   };
 
   useEffect(() => {
@@ -367,17 +393,20 @@ const AddRecipeComponent = (props: any) => {
       setPageLoaded(true);
     }, 1000);
   }, []);
-  console.log(
-    "recipeDetailsData",
-    recipeDetailsData?.Images?.data?.map((item) =>
-      getImageUrl(item?.attributes?.url)
-    )
-  );
 
   const parseTimeString = (timeString) => {
     const [hours, minutes] = timeString.split(":").map(Number);
     return dayjs().hour(hours).minute(minutes).second(0);
   };
+  const removeOnlineFileImage = (id: number) => {
+    const filterOnlineFiles = onlineFiles?.filter((item) => item?.id != id);
+    setOnlineFiles(filterOnlineFiles);
+  };
+  console.log(
+    "onlineFiles?.length + uploadedFiles?.length",
+    onlineFiles?.length + uploadedFiles?.length
+  );
+  const maxFilesUpload = onlineFiles?.length + uploadedFiles?.length;
 
   return (
     <>
@@ -681,6 +710,47 @@ const AddRecipeComponent = (props: any) => {
                     +
                   </Button>
                 </div>
+                <Box sx={{ display: "flex" }}>
+                  {onlineFiles?.length > 0 &&
+                    onlineFiles?.map((item, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column", // Arrange content vertically
+                          alignItems: "center",
+                          borderRadius: 8,
+                          backgroundColor: "#f2f2f2",
+                          boxShadow: 1,
+                          padding: "16px",
+                          margin: "8px",
+                          justifyContent: "space-between",
+                          position: "relative",
+                        }}
+                      >
+                        <img
+                          src={item?.image_url}
+                          alt=""
+                          style={{ width: 64, height: 64, borderRadius: 64 }}
+                        />
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: "-4px",
+                            right: "-4px",
+                          }}
+                        >
+                          <IconButton
+                            onClick={() => {
+                              removeOnlineFileImage(item?.id);
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    ))}
+                </Box>
 
                 <div
                   style={{
@@ -693,14 +763,7 @@ const AddRecipeComponent = (props: any) => {
                   }}
                 >
                   <DropzoneUploader
-                    // initialFiles={
-                    //   recipeDetailsData?.Images?.data?.map((item) => ({
-                    //     dataUrl: getImageUrl(item?.attributes?.url),
-                    //     file: { name: item?.attributes?.url, size: 1 },
-                    //   })) || []
-                    // }
                     onChangeStatus={handleChangeStatus}
-                    // initialFiles={uploadedFiles}
                     maxFiles={5}
                     accept="image/*"
                     inputContent={(files, extra) =>
