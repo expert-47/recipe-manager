@@ -13,6 +13,9 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import { useRouter } from "next/router";
+import { deleteCookie } from "cookies-next";
+import { getCookie, setCookie } from "cookies-next";
+
 import Link from "next/link";
 import LunchDiningIcon from "@mui/icons-material/LunchDining";
 const pages = ["Add Recipe"];
@@ -20,6 +23,8 @@ const settings = ["Dashboard", "Add Recipe", "Profile", "Logout"];
 
 function ResponsiveAppBar() {
   const router = useRouter();
+  const name = getCookie("name");
+
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
@@ -51,6 +56,8 @@ function ResponsiveAppBar() {
     if (pageName === "Profile") {
       router.push("/profile");
     } else if (pageName === "Logout") {
+      deleteCookie("id");
+
       router.push("/");
     } else if (pageName === "Dashboard") {
       router.push("/dashboard");
@@ -165,7 +172,10 @@ function ResponsiveAppBar() {
           >
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar
+                  alt={name?.charAt(0).toUpperCase() || "User Image"}
+                  src="/static/images/avatar/2.jpg"
+                />
               </IconButton>
             </Tooltip>
             <Menu
