@@ -27,8 +27,6 @@ const Dashboard = () => {
     getAllREcipes();
   }, []);
 
-  console.log("recipesState", recipesState);
-
   return (
     <div>
       <ResponsiveAppBar />
